@@ -133,7 +133,6 @@ export default function Navbar() {
 
   const isFavoritesPage = location.pathname === "/favorites";
   const isLocalPage = location.pathname === "/local";
-  const isPublishPage = location.pathname === "/publish";
 
   return (
     <nav className="fixed top-0 w-full z-50 bg-synth-bg/90 backdrop-blur-md border-b border-synth-border/70 transition-all shadow-[0_1px_0_rgba(255,77,143,0.06)]">
@@ -146,31 +145,15 @@ export default function Navbar() {
           </Link>
 
           <div className="flex items-center gap-4 sm:gap-6">
-            {user && userRole !== "super_admin" && (
-              <Link
-                to="/publish"
-                title="Publish a Game"
-                className={`transition-colors ${
-                  isPublishPage
-                    ? "text-synth-secondary drop-shadow-[0_0_8px_rgba(255,159,67,0.4)]"
-                    : "text-gray-400 hover:text-synth-secondary"
-                }`}
-              >
-                <UploadCloud
-                  className={`w-5 h-5 ${isPublishPage ? "fill-synth-secondary/20" : ""}`}
-                />
-              </Link>
-            )}
 
             {/* LOCAL VAULT LINK */}
             <Link
               to="/local"
               title="Local Vault"
-              className={`transition-colors ${
-                isLocalPage
+              className={`transition-colors ${isLocalPage
                   ? "text-synth-secondary drop-shadow-[0_0_8px_rgba(255,159,67,0.4)]"
                   : "text-gray-400 hover:text-synth-secondary"
-              }`}
+                }`}
             >
               <HardDrive
                 className={`w-6 h-6 ${isLocalPage ? "fill-synth-secondary/20" : ""}`}
@@ -182,11 +165,10 @@ export default function Navbar() {
               to="/favorites"
               onClick={handleFavoritesClick}
               title="Cloud Favorites"
-              className={`transition-colors ${
-                isFavoritesPage
+              className={`transition-colors ${isFavoritesPage
                   ? "text-synth-primary drop-shadow-[0_0_8px_rgba(255,77,143,0.4)]"
                   : "text-gray-400 hover:text-synth-primary"
-              }`}
+                }`}
             >
               <Heart
                 className={`w-6 h-6 ${isFavoritesPage ? "fill-synth-primary" : ""}`}
