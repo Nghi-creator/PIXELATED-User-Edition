@@ -57,3 +57,20 @@ As a much more frictionless product than the Studio edition, The User edition al
 **2. Experimentation purposes (for developers)**
 
 This version not supposed to be a robust cloud-gaming architecture. It's lightweight and usable, but won't have the same capacity to handle anything more than 8-bit games. However, it is still highly valuable when combined with the Studio version since now you can easily test, benchmark, and document the advantages of each version. Web emulators won't be able to run AAA games even with the strongest GPUs, but if you are a developer, use it smartly as a threshold to understand the advantages of using the Studio version's infrastructure.
+
+---
+
+## Community
+
+- **Link to the Studio edition:** [PIXELATED Studio edtion](https://github.com/Nghi-creator/Pixelated-Studio-Edition)
+- **Dev post:** [Dev.to Nicholas](https://dev.to/dashboard)
+- **LinkedIn:** [Linkedin Nicholas](https://www.linkedin.com/in/nicholas-nguyen-3bb17a335/)
+- **Email:** [Mail Nicholas](mailto:gianghi30032005@gmail.com)
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+Built by [Nicholas Nguyen](https://www.linkedin.com/in/nicholas-nguyen-3bb17a335/).
