@@ -7,6 +7,7 @@ import {
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import AdminLayout from "./components/layout/AdminLayout";
+import { useSessionTracker } from "./lib/useSessionTracker";
 
 import Landing from "./pages/user/Landing";
 import Player from "./pages/user/Player";
@@ -17,6 +18,7 @@ import ResetPassword from "./pages/user/ResetPassword";
 
 import UserManagement from "./pages/admin/UserManagement";
 import Dashboard from "./pages/admin/Dashboard";
+import AccessLogs from "./pages/admin/AccessLogs";
 import LocalVault from "./pages/user/LocalVault";
 
 // 1. Define the Standard Layout
@@ -35,15 +37,21 @@ const StandardLayout = () => {
     </div>
   );
 };
+const SessionTracker = () => {
+  useSessionTracker();
+  return null;
+};
 
 export default function App() {
   return (
     <Router>
+      <SessionTracker />
       <Routes>
         {/* ADMIN ROUTES */}
         <Route element={<AdminLayout />}>
           <Route path="/admin" element={<Dashboard />} />
           <Route path="/admin/users" element={<UserManagement />} />
+          <Route path="/admin/logs" element={<AccessLogs />} />
         </Route>
 
         {/* STANDARD ROUTES */}

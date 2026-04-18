@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -5,12 +6,40 @@ import {
   ArrowLeft,
   LogOut,
   ShieldAlert,
+  Activity,
 } from "lucide-react";
 import { supabase } from "../../lib/supabaseClient";
 
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [roleChecked, setRoleChecked] = useState(false);
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user) {
+        navigate("/login");
+        return;
+      }
+
+      const { data } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", session.user.id)
+        .single();
+
+      if (!data || (data.role !== "admin" && data.role !== "super_admin")) {
+        navigate("/");
+        return;
+      }
+
+      setRoleChecked(true);
+    };
+
+    checkAccess();
+  }, [navigate]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -20,7 +49,16 @@ export default function AdminLayout() {
   const navItems = [
     { name: "Moderation Queue", path: "/admin", icon: LayoutDashboard },
     { name: "User Management", path: "/admin/users", icon: Users },
+    { name: "Access Logs", path: "/admin/logs", icon: Activity },
   ];
+
+  if (!roleChecked) {
+    return (
+      <div className="h-screen bg-synth-bg flex items-center justify-center">
+        <div className="text-gray-400 font-bold animate-pulse text-lg">Authenticating Access...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-synth-bg text-white overflow-hidden">
