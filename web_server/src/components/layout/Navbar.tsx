@@ -6,7 +6,6 @@ import {
   User as UserIcon,
   ShieldAlert,
   HardDrive,
-  UploadCloud,
   Code,
 } from "lucide-react";
 import { supabase } from "../../lib/supabaseClient";
@@ -145,15 +144,15 @@ export default function Navbar() {
           </Link>
 
           <div className="flex items-center gap-4 sm:gap-6">
-
             {/* LOCAL VAULT LINK */}
             <Link
               to="/local"
               title="Local Vault"
-              className={`transition-colors ${isLocalPage
+              className={`transition-colors ${
+                isLocalPage
                   ? "text-synth-secondary drop-shadow-[0_0_8px_rgba(255,159,67,0.4)]"
                   : "text-gray-400 hover:text-synth-secondary"
-                }`}
+              }`}
             >
               <HardDrive
                 className={`w-6 h-6 ${isLocalPage ? "fill-synth-secondary/20" : ""}`}
@@ -165,10 +164,11 @@ export default function Navbar() {
               to="/favorites"
               onClick={handleFavoritesClick}
               title="Cloud Favorites"
-              className={`transition-colors ${isFavoritesPage
+              className={`transition-colors ${
+                isFavoritesPage
                   ? "text-synth-primary drop-shadow-[0_0_8px_rgba(255,77,143,0.4)]"
                   : "text-gray-400 hover:text-synth-primary"
-                }`}
+              }`}
             >
               <Heart
                 className={`w-6 h-6 ${isFavoritesPage ? "fill-synth-primary" : ""}`}
