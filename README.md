@@ -10,6 +10,14 @@
   <a href="https://dev.to/dashboard"><img src="https://img.shields.io/badge/Dev-Post-green?style=for-the-badge" alt="Dev Post"></a>
 </p>
 
+## ⚖️ Acknowledgments & copyright disclaimer
+
+**PIXELATED Studio does not claim ownership of any third-party games featured in the public library.** The 8-bit games provided on this platform are works created by indie homebrew developers within the retro gaming community (many of which are sourced from itch.io). These titles are included strictly for educational, demonstrative, and testing purposes to showcase the capabilities of the platform's web emulation and cloud infrastructure.
+
+Full credit, copyright, and intellectual property rights remain entirely with the original authors. We have attached the original authors' names to their respective titles, and we highly encourage all players to support the creators by searching for them, playing their other games, and supporting their work directly.
+
+_If you are the original developer of a featured game and would like it removed from the PIXELATED public library, please open a GitHub Issue or contact the repository owner, and it will be handled immediately._
+
 ## 🌟 Overview
 
 **A frictionless 8-bit gaming platform built for the web.** PIXELATED User edition is the accessible, consumer-facing sibling to PIXELATED Studio. The purpose of this edition is to provide pure, instant playability, and act as an alternative of the true cloud-gaming infrastructure, allowing developers to test and compare the two versions directly and providing understandings on the pros and cons of each architecture.
