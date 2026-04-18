@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   ArrowLeft,
   Loader2,
@@ -33,16 +33,15 @@ interface GameComment {
 export default function Player() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
 
-  // Replace videoRef with canvasRef for WebAssembly
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const nostalgistRef = useRef<Nostalgist | null>(null);
 
   const [status, setStatus] = useState<
     "idle" | "loading" | "playing" | "error"
   >("idle");
-  const [romData, setRomData] = useState<string | File | null>(null);
+  // Added Blob to the accepted types for Cloud Vault downloads
+  const [romData, setRomData] = useState<string | File | Blob | null>(null);
 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [gameTitle, setGameTitle] = useState<string>("");
@@ -75,28 +74,47 @@ export default function Player() {
     });
   }, []);
 
-  // 2. Fetch Game Details or Grab Local File
+  // 2. Fetch Game Details OR Download from Cloud Vault
   useEffect(() => {
     const fetchGameDetails = async () => {
       if (!id) return;
       setStatus("loading");
 
+      // CLOUD VAULT LOGIC (If the URL ends in .nes)
       if (id.toLowerCase().endsWith(".nes")) {
         const formattedTitle = id
           .replace(/-/g, " ")
           .replace(/\b\w/g, (char) => char.toUpperCase());
         setGameTitle(formattedTitle.replace(".nes", ""));
 
-        const localFile = location.state?.file;
-        if (localFile) {
-          setRomData(localFile);
-        } else {
-          console.error("No local file found in memory.");
+        try {
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
+          if (!session?.user) {
+            console.error("User not authenticated.");
+            setStatus("error");
+            return;
+          }
+
+          const userId = session.user.id;
+          const filePath = `${userId}/${id}`;
+
+          const { data: fileBlob, error } = await supabase.storage
+            .from("web_roms")
+            .download(filePath);
+
+          if (error || !fileBlob) throw error;
+
+          setRomData(fileBlob);
+        } catch (err) {
+          console.error("Failed to fetch ROM from Cloud Vault:", err);
           setStatus("error");
         }
         return;
       }
 
+      // PUBLIC LIBRARY LOGIC (If it's a standard UUID)
       const { data, error } = await supabase
         .from("games")
         .select("title, author_name, rom_url, rom_filename")
@@ -112,7 +130,7 @@ export default function Player() {
       }
     };
     fetchGameDetails();
-  }, [id, location.state]);
+  }, [id]);
 
   // 3. Boot WebAssembly Emulator
   useEffect(() => {
@@ -134,7 +152,6 @@ export default function Player() {
 
     if (romData) bootEmulator();
 
-    // Cleanup: Kill the emulator when the user leaves the page
     return () => {
       if (nostalgistRef.current) {
         nostalgistRef.current.exit();
@@ -416,8 +433,8 @@ export default function Player() {
   const isLocalGame = id?.toLowerCase().endsWith(".nes");
   const backRoute = isLocalGame ? "/local" : "/";
   const backText = isLocalGame
-    ? "Back to Local Vault"
-    : "Back to Cloud Library";
+    ? "Back to Cloud Vault"
+    : "Back to Public Library";
 
   return (
     <div className="flex flex-col items-center pt-24 pb-24 px-4 min-h-screen">
@@ -459,12 +476,12 @@ export default function Player() {
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-synth-bg/90 backdrop-blur-sm">
             <Loader2 className="w-12 h-12 text-synth-primary animate-spin mb-4 drop-shadow-[0_0_12px_rgba(255,77,143,0.45)]" />
             <p className="text-lg text-gray-300 font-medium tracking-wide">
-              Loading Libretro Core into Memory...
+              Downloading ROM to Memory...
             </p>
           </div>
         )}
 
-        {/* NATIVE CANVAS ENGIINE */}
+        {/* NATIVE CANVAS ENGINE */}
         <canvas
           ref={canvasRef}
           className="w-full h-full object-contain image-rendering-pixelated"

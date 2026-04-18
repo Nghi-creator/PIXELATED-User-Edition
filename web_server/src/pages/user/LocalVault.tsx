@@ -13,30 +13,38 @@ export default function LocalVault() {
   const [localGames, setLocalGames] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [userId, setUserId] = useState<string>("anonymous");
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const initVault = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      const currentUserId = session?.user?.id || "anonymous";
-      setUserId(currentUserId);
-      fetchLocalGames(currentUserId);
+
+      if (session?.user?.id) {
+        setUserId(session.user.id);
+        fetchCloudGames(session.user.id);
+      }
     };
     initVault();
   }, []);
 
-  const fetchLocalGames = async (uid: string) => {
+  const fetchCloudGames = async (uid: string) => {
     try {
-      const res = await fetch("http://localhost:8080/local-games", {
-        headers: { "X-User-Id": uid },
-      });
-      if (!res.ok) throw new Error("Local engine offline");
-      const data = await res.json();
-      setLocalGames(data);
+      // List all files inside this user's specific folder in the bucket
+      const { data, error } = await supabase.storage.from("web_roms").list(uid);
+
+      if (error) throw error;
+
+      // Filter out any hidden system files and map just the filenames
+      if (data) {
+        const gameFiles = data
+          .filter((file) => file.name.endsWith(".nes"))
+          .map((file) => file.name);
+        setLocalGames(gameFiles);
+      }
     } catch (err) {
-      console.error("Could not connect to local Docker engine:", err);
+      console.error("Could not fetch cloud games:", err);
     }
   };
 
@@ -54,66 +62,60 @@ export default function LocalVault() {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files[0];
-    if (file) await uploadFile(file);
+    if (file && userId) await uploadFile(file, userId);
   };
 
   const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) await uploadFile(file);
+    if (file && userId) await uploadFile(file, userId);
   };
 
-  const uploadFile = async (file: File) => {
+  const uploadFile = async (file: File, uid: string) => {
     if (!file.name.toLowerCase().endsWith(".nes")) {
       alert("Only .nes files are supported!");
       return;
     }
 
     setIsUploading(true);
-    const formData = new FormData();
-    formData.append("romFile", file);
 
     try {
-      const res = await fetch("http://localhost:8080/upload", {
-        method: "POST",
-        headers: { "X-User-Id": userId },
-        body: formData,
-      });
+      // Upload directly to Supabase storage: bucketName, filePath, file
+      const filePath = `${uid}/${file.name}`;
+      const { error } = await supabase.storage
+        .from("web_roms")
+        .upload(filePath, file, { upsert: true });
 
-      if (res.ok) {
-        await fetchLocalGames(userId);
-      } else {
-        alert("Upload failed.");
-      }
+      if (error) throw error;
+
+      await fetchCloudGames(uid);
     } catch (err) {
       console.error("Upload error:", err);
-      alert("Make sure your Docker engine is running!");
+      alert("Failed to upload to Cloud Vault.");
     } finally {
       setIsUploading(false);
     }
   };
 
-  const deleteLocalGame = async (e: React.MouseEvent, filename: string) => {
+  const deleteCloudGame = async (e: React.MouseEvent, filename: string) => {
     e.preventDefault();
-
-    if (!window.confirm(`Are you sure you want to delete ${filename}?`)) return;
+    if (
+      !userId ||
+      !window.confirm(`Are you sure you want to delete ${filename}?`)
+    )
+      return;
 
     try {
-      const res = await fetch(
-        `http://localhost:8080/local-games/${encodeURIComponent(filename)}`,
-        {
-          method: "DELETE",
-          headers: { "X-User-Id": userId },
-        },
-      );
+      const filePath = `${userId}/${filename}`;
+      const { error } = await supabase.storage
+        .from("web_roms")
+        .remove([filePath]);
 
-      if (res.ok) {
-        await fetchLocalGames(userId);
-      } else {
-        alert("Failed to delete game.");
-      }
+      if (error) throw error;
+
+      await fetchCloudGames(userId);
     } catch (err) {
       console.error("Delete error:", err);
-      alert("Make sure your Docker engine is running!");
+      alert("Failed to delete game from Cloud Vault.");
     }
   };
 
@@ -131,12 +133,11 @@ export default function LocalVault() {
 
       <div className="mb-8 border-l-4 border-synth-secondary pl-3">
         <h2 className="text-3xl font-extrabold text-white drop-shadow-[0_0_12px_rgba(255,159,67,0.2)]">
-          Local Vault
+          Cloud Vault
         </h2>
         <p className="text-gray-400 mt-1 flex items-center gap-2">
-          Choose a ROM from your hard drive to play on our web-based emulator.
-          Your files stay on your machine and are securely isolated to your
-          account.
+          Upload your personal ROMs to play instantly in the browser. Your files
+          are securely isolated to your account.
         </p>
       </div>
 
@@ -167,7 +168,7 @@ export default function LocalVault() {
         )}
 
         <h3 className="text-xl font-bold text-white mb-2">
-          {isUploading ? "Transmitting to Engine..." : "Drag & Drop ROMs here"}
+          {isUploading ? "Uploading to Cloud..." : "Drag & Drop ROMs here"}
         </h3>
         <p className="text-sm text-gray-400">
           or click to browse your files (.nes only)
@@ -178,7 +179,7 @@ export default function LocalVault() {
       {localGames.length === 0 ? (
         <div className="text-center py-20 text-gray-500 bg-synth-surface rounded-xl border border-synth-border">
           <Gamepad2 className="w-12 h-12 mx-auto mb-4 opacity-20" />
-          <p className="text-xl">Your local vault is empty.</p>
+          <p className="text-xl">Your cloud vault is empty.</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
@@ -193,9 +194,9 @@ export default function LocalVault() {
               </div>
 
               <button
-                onClick={(e) => deleteLocalGame(e, filename)}
+                onClick={(e) => deleteCloudGame(e, filename)}
                 className="absolute top-2 right-2 bg-synth-bg/85 border border-synth-border p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all hover:border-red-500 hover:bg-red-500/20 focus:outline-none z-10 backdrop-blur-sm"
-                title="Delete from Hard Drive"
+                title="Delete from Cloud"
               >
                 <Trash2 className="w-4 h-4 text-gray-400 hover:text-red-400 transition-colors" />
               </button>
