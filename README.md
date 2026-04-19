@@ -71,7 +71,7 @@ This version not supposed to be a robust cloud-gaming architecture. It's lightwe
 ## Community
 
 - **Link to the Studio edition:** [PIXELATED Studio edtion](https://github.com/Nghi-creator/Pixelated-Studio-Edition)
-- **Dev post:** [Dev.to Nicholas](https://dev.to/dashboard)
+- **Dev post:** [Dev.to Nicholas](https://dev.to/nicholasthegreat)
 - **LinkedIn:** [Linkedin Nicholas](https://www.linkedin.com/in/nicholas-nguyen-3bb17a335/)
 - **Email:** [Mail Nicholas](mailto:gianghi30032005@gmail.com)
 
